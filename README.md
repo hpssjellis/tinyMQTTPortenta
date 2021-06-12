@@ -1,4 +1,14 @@
-# TinyMqtt
+# TinyMqttPortenta
+
+
+
+a sub fork of TinyMQTT 
+
+
+
+
+
+
 
 [![Release](https://img.shields.io/github/v/release/hsaturn/TinyMqtt)](https://github.com/hsaturn/TinyMqtt/releases)
 [![AUnit Tests](https://github.com/hsaturn/TinyMqtt/actions/workflows/aunit.yml/badge.svg)](https://github.com/hsaturn/TinyMqtt/actions/workflows/aunit.yml)
