@@ -3,14 +3,17 @@
 // TODO Should add a AUnit with both TCP_ASYNC and not TCP_ASYNC
 // #define TCP_ASYNC	// Uncomment this to use ESPAsyncTCP instead of normal cnx
 
-#if defined(ARDUINO_PORTENTA_H7_M7)
+#if defined(ARDUINO_PORTENTA_H7_M7) 
+  #if defined(WiFi_h)
+	#include <Arduino.h>
+	using namespace arduino;
+  else	// then must be Ethernet
 	#include <Arduino.h>
 	#include <Ethernet.h>
 	#include <PortentaEthernet.h>
-        #include <WiFi.h>
 	using namespace arduino;
+  #endif
 #endif
-
 
 #include <vector>
 #include <set>
@@ -26,12 +29,12 @@
   #define debug(what) {}
 #endif
 
-#ifdef ethernet_h_
+#ifdef WiFi_h   // assumes your sketch has declared wifi.h if not then Ethernet
+  using TcpClient = WifiClient;
+  using TcpServer = WifiServer;
+#else
   using TcpClient = EthernetClient;
   using TcpServer = EthernetServer;
-#else
-  using TcpClient = WiFiClient;
-  using TcpServer = WiFiServer;
 #endif
 
 enum MqttError
