@@ -7,7 +7,7 @@
   #if defined(WiFi_h)
 	#include <Arduino.h>
 	using namespace arduino;
-  else	// then must be Ethernet
+  #else	// then must be Ethernet
 	#include <Arduino.h>
 	#include <Ethernet.h>
 	#include <PortentaEthernet.h>
