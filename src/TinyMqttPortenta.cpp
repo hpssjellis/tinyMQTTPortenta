@@ -405,8 +405,12 @@ void MqttClient::processMessage(const MqttMessage* mesg)
 #ifdef TINY_MQTT_DEBUG
 if (mesg->type() != MqttMessage::Type::PingReq && mesg->type() != MqttMessage::Type::PingResp)
 {
-	Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
+  #if defined(ARDUINO_PORTENTA_H7_M7)
+     Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=portenta cant print ESP.getFreeHeap()"  << endl;
+  else
+     Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
 	// mesg->hexdump("Incoming");
+  #endif  // Portenta can't print ESP.getFreeHaep()
 }
 #endif
   auto header = mesg->getVHeader();
