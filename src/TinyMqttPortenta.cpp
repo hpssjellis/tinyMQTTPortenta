@@ -1,4 +1,4 @@
-#include "TinyMqttPortenta.h"
+#include "TinyMqtt.h"
 #include <sstream>
 
 void outstring(const char* prefix, const char*p, uint16_t len)
@@ -12,6 +12,14 @@ void outstring(const char* prefix, const char*p, uint16_t len)
 MqttBroker::MqttBroker(uint16_t port)
 {
 	server = new TcpServer(port);
+#ifdef TCP_ASYNC
+	server->onClient(onClient, this);
+#endif
+}
+
+MqttBroker::MqttBroker(TcpServer* server):
+	server(server)
+{
 #ifdef TCP_ASYNC
 	server->onClient(onClient, this);
 #endif
@@ -36,7 +44,7 @@ MqttClient::MqttClient(MqttBroker* parent, TcpClient* new_client)
 	// client->onConnect() TODO
 	// client->onDisconnect() TODO
 #else
-	client = new WiFiClient(*new_client);
+	client = new TcpClient(*new_client);
 #endif
 	alive = millis()+5000;	// client expires after 5s if no CONNECT msg
 }
@@ -141,7 +149,7 @@ void MqttBroker::onClient(void* broker_ptr, TcpClient* client)
 void MqttBroker::loop()
 {
 #ifndef TCP_ASYNC
-  WiFiClient client = server->available();
+  TcpClient client = server->available();
 
   if (client)
 	{
@@ -397,14 +405,8 @@ void MqttClient::processMessage(const MqttMessage* mesg)
 #ifdef TINY_MQTT_DEBUG
 if (mesg->type() != MqttMessage::Type::PingReq && mesg->type() != MqttMessage::Type::PingResp)
 {
-	
-	#ifdef ARDUINO_PORTENTA_H7_M7    // ESP.getFreeHeap()  kills the Portenta
-		Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << " ESP.getFreeHeap() " << endl;
+	Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
 	// mesg->hexdump("Incoming");
-	#else
-		Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
- 
-	#endif
 }
 #endif
   auto header = mesg->getVHeader();
