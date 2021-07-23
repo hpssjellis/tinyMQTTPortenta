@@ -14,6 +14,18 @@
 	#ifdef TCP_ASYNC
 	  #include <AsyncTCP.h> // https://github.com/me-no-dev/AsyncTCP
   #endif
+#elif defined(ARDUINO_PORTENTA_H7_M7)
+  #include <Arduino.h>
+  using namespace arduino;
+  #if defined(WiFi_h)
+     #include <WiFiClient.h>
+     #include <WiFiServer.h>
+  #else
+     #include <Ethernet.h>
+     #include <PortentaEthernet.h>
+  #endif
+   // #include <WiFi.h>
+
 #endif
 #ifdef EPOXY_DUINO
   #define dbg_ptr uint64_t
@@ -38,8 +50,13 @@
   using TcpClient = AsyncClient;
   using TcpServer = AsyncServer;
 #else
-  using TcpClient = WiFiClient;
-  using TcpServer = WiFiServer;
+    #if defined(WiFi_h)
+      using TcpClient = WifiClient;
+      using TcpServer = WifiServer;
+    #else
+      using TcpClient = EthernetClient;
+      using TcpServer = EthernetServer;
+   #ifdef
 #endif
 
 enum MqttError
@@ -163,8 +180,10 @@ class MqttClient
 		bool connected() { return
 			(parent!=nullptr and client==nullptr) or
 			(client and client->connected()); }
-		void write(const char* buf, size_t length)
+		void write(const uint8_t* buf, size_t length)
 		{ if (client) client->write(buf, length); }
+		void write(const char* buf, size_t length)
+		{ if (client) client->write((uint8_t *)buf, length); }
 
 		const std::string& id() const { return clientId; }
 		void id(std::string& new_id) { clientId = new_id; }
@@ -257,6 +276,7 @@ class MqttBroker
 	public:
 	  // TODO limit max number of clients
 		MqttBroker(uint16_t port);
+		MqttBroker(TcpServer *server);
 		~MqttBroker();
 
 		void begin() { server->begin(); }
