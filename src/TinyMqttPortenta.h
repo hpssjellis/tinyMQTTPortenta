@@ -3,18 +3,23 @@
 // TODO Should add a AUnit with both TCP_ASYNC and not TCP_ASYNC
 // #define TCP_ASYNC	// Uncomment this to use ESPAsyncTCP instead of normal cnx
 
-#if defined(ARDUINO_PORTENTA_H7_M7) 
-  #if defined(WiFi_h)
-	#include <Arduino.h>
-	using namespace arduino;
-  #else	// then must be Ethernet
-	#include <Arduino.h>
-	#include <Ethernet.h>
-	#include <PortentaEthernet.h>
-	using namespace arduino;
+#if defined(ESP8266) || defined(EPOXY_DUINO)
+	#ifdef TCP_ASYNC
+		#include <ESPAsyncTCP.h>
+  #else
+    #include <ESP8266WiFi.h>
+  #endif
+#elif defined(ESP32)
+  #include <WiFi.h>
+	#ifdef TCP_ASYNC
+	  #include <AsyncTCP.h> // https://github.com/me-no-dev/AsyncTCP
   #endif
 #endif
-
+#ifdef EPOXY_DUINO
+  #define dbg_ptr uint64_t
+#else
+  #define dbg_ptr uint32_t
+#endif
 #include <vector>
 #include <set>
 #include <string>
@@ -29,12 +34,12 @@
   #define debug(what) {}
 #endif
 
-#ifdef WiFi_h   // assumes your sketch has declared wifi.h if not then Ethernet
-  using TcpClient = WifiClient;
-  using TcpServer = WifiServer;
+#ifdef TCP_ASYNC
+  using TcpClient = AsyncClient;
+  using TcpServer = AsyncServer;
 #else
-  using TcpClient = EthernetClient;
-  using TcpServer = EthernetServer;
+  using TcpClient = WiFiClient;
+  using TcpServer = WiFiServer;
 #endif
 
 enum MqttError
@@ -158,10 +163,8 @@ class MqttClient
 		bool connected() { return
 			(parent!=nullptr and client==nullptr) or
 			(client and client->connected()); }
-		void write(const uint8_t* buf, size_t length)
-		{ if (client) client->write(buf, length); }
 		void write(const char* buf, size_t length)
-		{ if (client) client->write((uint8_t *)buf, length); }
+		{ if (client) client->write(buf, length); }
 
 		const std::string& id() const { return clientId; }
 		void id(std::string& new_id) { clientId = new_id; }
@@ -254,7 +257,6 @@ class MqttBroker
 	public:
 	  // TODO limit max number of clients
 		MqttBroker(uint16_t port);
-		MqttBroker(TcpServer *server);
 		~MqttBroker();
 
 		void begin() { server->begin(); }
