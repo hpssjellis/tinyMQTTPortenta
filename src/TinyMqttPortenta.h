@@ -3,29 +3,15 @@
 // TODO Should add a AUnit with both TCP_ASYNC and not TCP_ASYNC
 // #define TCP_ASYNC	// Uncomment this to use ESPAsyncTCP instead of normal cnx
 
-#if defined(ESP8266) || defined(EPOXY_DUINO)
-	#ifdef TCP_ASYNC
-		#include <ESPAsyncTCP.h>
-  #else
-    #include <ESP8266WiFi.h>
-  #endif
-#elif defined(ESP32)
-  #include <WiFi.h>
-	#ifdef TCP_ASYNC
-	  #include <AsyncTCP.h> // https://github.com/me-no-dev/AsyncTCP
-  #endif
-#elif defined(ARDUINO_PORTENTA_H7_M7)
+#if defined(ARDUINO_PORTENTA_H7_M7)
 	#include <Arduino.h>
 	#include <Ethernet.h>
 	#include <PortentaEthernet.h>
-    #include <WiFi.h>
+        #include <WiFi.h>
 	using namespace arduino;
 #endif
-#ifdef EPOXY_DUINO
-  #define dbg_ptr uint64_t
-#else
-  #define dbg_ptr uint32_t
-#endif
+
+
 #include <vector>
 #include <set>
 #include <string>
@@ -40,12 +26,12 @@
   #define debug(what) {}
 #endif
 
-#ifdef TCP_ASYNC
-  using TcpClient = AsyncClient;
-  using TcpServer = AsyncServer;
-#else
+#ifdef ethernet_h_
   using TcpClient = EthernetClient;
   using TcpServer = EthernetServer;
+#else
+  using TcpClient = WiFiClient;
+  using TcpServer = WiFiServer;
 #endif
 
 enum MqttError
