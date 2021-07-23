@@ -3,13 +3,6 @@
 // TODO Should add a AUnit with both TCP_ASYNC and not TCP_ASYNC
 // #define TCP_ASYNC	// Uncomment this to use ESPAsyncTCP instead of normal cnx
 
-
-
-//#define TINY_MQTT_DEBUG   // define in your sketch
-//#define TINY_MQTT_PORTENTA_ETHERNET  //if Portenta Ethernet used include this in your sketch
-
-
-
 #if defined(ESP8266) || defined(EPOXY_DUINO)
 	#ifdef TCP_ASYNC
 		#include <ESPAsyncTCP.h>
@@ -22,15 +15,11 @@
 	  #include <AsyncTCP.h> // https://github.com/me-no-dev/AsyncTCP
   #endif
 #elif defined(ARDUINO_PORTENTA_H7_M7)
-	#ifdef TINY_MQTT_PORTENTA_ETHERNET
-
-		#include <Portenta_Ethernet.h>
-		#include <Ethernet.h>
-	#else
-  		#include <WiFi.h>
-  		#include <WiFiClient.h>
-  		#include <WiFiServer.h>
-	#endif
+	#include <Arduino.h>
+	#include <Ethernet.h>
+	#include <PortentaEthernet.h>
+    #include <WiFi.h>
+	using namespace arduino;
 #endif
 #ifdef EPOXY_DUINO
   #define dbg_ptr uint64_t
@@ -43,6 +32,7 @@
 #include "StringIndexer.h"
 #include <MqttStreaming.h>
 
+// #define TINY_MQTT_DEBUG
 
 #ifdef TINY_MQTT_DEBUG
   #define debug(what) { Serial << __LINE__ << ' ' << what << endl; delay(100); }
@@ -50,24 +40,13 @@
   #define debug(what) {}
 #endif
 
-
-  #ifdef ARDUINO_PORTENTA_H7_M7
-    #ifdef TINY_MQTT_PORTENTA_ETHERNET
-       #define TcpClient  EthernetClient
-       #define TcpServer  EthernetServer
-    #else
-       #define TcpClient  WiFiClient
-       #define TcpServer  WiFiServer
-    #endif
-  #else   // end yes portenta
 #ifdef TCP_ASYNC
   using TcpClient = AsyncClient;
   using TcpServer = AsyncServer;
 #else
-    using TcpClient = WiFiClient;
-    using TcpServer = WiFiServer;
+  using TcpClient = EthernetClient;
+  using TcpServer = EthernetServer;
 #endif
-#endif  // end else portenta
 
 enum MqttError
 {
@@ -190,8 +169,10 @@ class MqttClient
 		bool connected() { return
 			(parent!=nullptr and client==nullptr) or
 			(client and client->connected()); }
-		void write(const char* buf, size_t length)
+		void write(const uint8_t* buf, size_t length)
 		{ if (client) client->write(buf, length); }
+		void write(const char* buf, size_t length)
+		{ if (client) client->write((uint8_t *)buf, length); }
 
 		const std::string& id() const { return clientId; }
 		void id(std::string& new_id) { clientId = new_id; }
@@ -284,6 +265,7 @@ class MqttBroker
 	public:
 	  // TODO limit max number of clients
 		MqttBroker(uint16_t port);
+		MqttBroker(TcpServer *server);
 		~MqttBroker();
 
 		void begin() { server->begin(); }
