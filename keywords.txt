@@ -6,7 +6,7 @@
 # Datatypes and functions
 #######################################
 
-TinyMqtt    KEYWORD1
+TinyMqttPortenta    KEYWORD1
 
 MqttBroker  KEYWORD1
 connect		  KEYWORD2
