@@ -21,7 +21,7 @@ a sub fork of TinyMQTT made just for the Arduino Portenta
 
 
 
-# Original tinyMQTT information for the ESP32
+# Original tinyMQTT information for the ESP32   https://github.com/hsaturn/TinyMqtt
 
 
 
