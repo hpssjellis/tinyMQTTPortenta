@@ -17,14 +17,6 @@ MqttBroker::MqttBroker(uint16_t port)
 #endif
 }
 
-MqttBroker::MqttBroker(TcpServer* server):
-	server(server)
-{
-#ifdef TCP_ASYNC
-	server->onClient(onClient, this);
-#endif
-}
-
 MqttBroker::~MqttBroker()
 {
 	while(clients.size())
@@ -44,7 +36,7 @@ MqttClient::MqttClient(MqttBroker* parent, TcpClient* new_client)
 	// client->onConnect() TODO
 	// client->onDisconnect() TODO
 #else
-	client = new TcpClient(*new_client);
+	client = new WiFiClient(*new_client);
 #endif
 	alive = millis()+5000;	// client expires after 5s if no CONNECT msg
 }
@@ -149,7 +141,7 @@ void MqttBroker::onClient(void* broker_ptr, TcpClient* client)
 void MqttBroker::loop()
 {
 #ifndef TCP_ASYNC
-  TcpClient client = server->available();
+  WiFiClient client = server->available();
 
   if (client)
 	{
@@ -405,12 +397,8 @@ void MqttClient::processMessage(const MqttMessage* mesg)
 #ifdef TINY_MQTT_DEBUG
 if (mesg->type() != MqttMessage::Type::PingReq && mesg->type() != MqttMessage::Type::PingResp)
 {
-  #if defined(ARDUINO_PORTENTA_H7_M7)
-     Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=portenta cant print ESP.getFreeHeap()"  << endl;
-  else
-     Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
+	Serial << "---> INCOMING " << _HEX(mesg->type()) << " client(" << (dbg_ptr)client << ':' << clientId << ") mem=" << ESP.getFreeHeap() << endl;
 	// mesg->hexdump("Incoming");
-  #endif  // Portenta can't print ESP.getFreeHaep()
 }
 #endif
   auto header = mesg->getVHeader();
@@ -677,7 +665,12 @@ void MqttMessage::incoming(char in_byte)
 			state = Length;
 			break;
 		case Length:
-			size = (size<<7) + (in_byte & 0x3F);
+		  if (size==0)
+        size = in_byte & 0x7F;
+		  else if (size<128)
+		    size += static_cast<uint16_t>(in_byte & 0x7F)<<7;
+		  else
+		    state = Error;  // Really don't want to handle msg with length > 16k
 			if (size > MaxBufferLength)
 			{
 				state = Error;
