@@ -1,8 +1,14 @@
 # TinyMqttPortenta
 
+Update Aug 12th, 2021.  The wifi Portenta Programs should work, I need to do some changes to get the Ethernet part working. Based on 
+https://github.com/manchoz/TinyMqtt/tree/mnx_portenta_h7
 
 
-a sub fork of TinyMQTT made just for the Arduino Portenta
+
+
+
+
+This repository is a sub fork of TinyMQTT but made just for the Arduino Portenta
 
 
 
