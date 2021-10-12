@@ -1,3 +1,13 @@
+
+
+# DEPRECATED
+
+See V2
+
+
+
+
+
 # TinyMqttPortenta
 
 Update Aug 12th, 2021.  The wifi Portenta Programs should work, I need to do some changes to get the Ethernet part working. Based on 
